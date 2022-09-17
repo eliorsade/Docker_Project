@@ -1,10 +1,10 @@
 pipeline {
-   agent any
+   agent { label "Hetzner" }
    stages {
-    stage('Clone Sources') {
-        steps {
-          checkout scm
-        } 
+   stage('Clone Sources') {
+       steps {
+         checkout scm
+       } 
       }
       stage('Build Dockerfile') {
     	  steps {  
@@ -13,30 +13,34 @@ pipeline {
          }
        }
        stage('Docker Run'){
-           '''
-           for CONTAINER in $(docker ps --format "{{.Names}}")
-           do
-                if CONTAINER=="alpine_python_app"; then
-                    echo "App is not running, starting it"
-				    docker run -d --name='alpine_python_app' alpine_python_app
-				else
-				echo "App is running"
-				fi
-           done
+           steps{
+          sh '''
+          CONTAINER=alpine_python_app
+          if docker ps --format '{{.Names}}' | grep "$CONTAINER"; then
+                echo "App is running"
+                docker ps
+		  else
+				echo "App is not running, starting it"
+				docker run -d --name='alpine_python_app' -v ${HOME}/Docker-project:/var/volume/ alpine_python_app
+				docker ps
+			fi
            '''
        }
+       }
        stage('Time Check'){
+           steps{
         // Check if container is running after 10 seconds"
         sh '''
         sleep 10
         CONTAINER=alpine_python_app
-        if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER}\$"; then
+        if docker ps -a --format '{{.Names}}' | grep "$CONTAINER"; then
             echo "Container is running, stoping it"
             docker rm -f alpine_python_app
         else
             echo 'App is stopped'
         fi
 		'''
+       }
        }
    }
    post {   
