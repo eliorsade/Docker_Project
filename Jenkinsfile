@@ -9,7 +9,6 @@ pipeline {
       stage('Build Dockerfile') {
     	  steps {  
     	      sh 'docker build -t="alpine_python_app" .' 
-    	      sh 'docker ps'
          }
        }
        stage('Docker Run'){
@@ -21,7 +20,6 @@ pipeline {
                 docker ps
 		  else
 				echo "App is not running, starting it"
-				echo $WORKSPACE
 				docker run -d --name='alpine_python_app' -v $WORKSPACE:/var/volume/ alpine_python_app
 				docker ps
 			fi
