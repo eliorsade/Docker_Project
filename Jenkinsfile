@@ -15,14 +15,14 @@ pipeline {
        stage('Docker Run'){
            steps{
           sh '''
-	  cp results.txt /${HOME}/Docker-project
           CONTAINER=alpine_python_app
           if docker ps --format '{{.Names}}' | grep "$CONTAINER"; then
                 echo "App is running"
                 docker ps
 		  else
 				echo "App is not running, starting it"
-				docker run -d --name='alpine_python_app' -v ${HOME}/Docker-project:/var/volume/ alpine_python_app
+				echo $WORKSPACE
+				docker run -d --name='alpine_python_app' -v $WORKSPACE:/var/volume/ alpine_python_app
 				docker ps
 			fi
            '''
